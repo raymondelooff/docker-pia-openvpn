@@ -29,14 +29,6 @@ openvpn_connect() {
 }
 
 iptables_setup() {
-    iptables -N INPUT || true
-    iptables -N FORWARD || true
-    iptables -N OUTPUT || true
-
-    iptables -P INPUT ACCEPT
-    iptables -P FORWARD ACCEPT
-    iptables -P OUTPUT ACCEPT
-
     # Allow OpenVPN traffic
     OPENVPN_FILE=$(echo $ARGS | awk '/--config/ { print $2 }')
     if [[ -n $OPENVPN_FILE ]]; then
@@ -82,9 +74,9 @@ iptables_setup() {
         iptables -A OUTPUT -d $DOCKER_NETWORK -j ACCEPT
     done
 
-    iptables -A INPUT -j REJECT --reject-with icmp-port-unreachable
-    iptables -A FORWARD -j REJECT --reject-with icmp-port-unreachable
-    iptables -A OUTPUT -j REJECT --reject-with icmp-port-unreachable
+    iptables -A INPUT -j REJECT --reject-with icmp-port-unreachable || iptables -A INPUT -j DROP
+    iptables -A FORWARD -j REJECT --reject-with icmp-port-unreachable || iptables -A FORWARD -j DROP
+    iptables -A OUTPUT -j REJECT --reject-with icmp-port-unreachable || iptables -A OUTPUT -j DROP
 }
 
 if [[ -n $REGION ]]; then
