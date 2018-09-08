@@ -70,7 +70,7 @@ iptables_setup() {
     # Allow traffic between other containers
     for DOCKER_NETWORK in $DOCKER_NETWORKS
     do
-        iptables -A INPUT -s $DOCKER_NETWORK -m state --state ESTABLISHED,RELATED -j ACCEPT
+        iptables -A INPUT -s $DOCKER_NETWORK -j ACCEPT
         iptables -A OUTPUT -d $DOCKER_NETWORK -j ACCEPT
     done
 
