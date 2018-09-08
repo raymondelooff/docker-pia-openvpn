@@ -29,9 +29,9 @@ openvpn_connect() {
 }
 
 iptables_setup() {
-    iptables -N INPUT 2> /dev/null
-    iptables -N FORWARD 2> /dev/null
-    iptables -N OUTPUT 2> /dev/null
+    iptables -N INPUT || true
+    iptables -N FORWARD || true
+    iptables -N OUTPUT || true
 
     iptables -P INPUT ACCEPT
     iptables -P FORWARD ACCEPT
@@ -94,7 +94,7 @@ else
 fi
 
 for ARG in $@; do
-    ARGS="${ARGS} \"$ARG\""
+    ARGS="${ARGS} ${ARG}"
 done
 
 tun_device_setup
