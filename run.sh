@@ -29,6 +29,10 @@ openvpn_connect() {
 }
 
 iptables_setup() {
+    iptables -N INPUT 2> /dev/null
+    iptables -N FORWARD 2> /dev/null
+    iptables -N OUTPUT 2> /dev/null
+
     # Allow OpenVPN traffic
     OPENVPN_FILE=$(echo $ARGS | awk '/--config/ { print $2 }')
     if [[ -n $OPENVPN_FILE ]]; then
