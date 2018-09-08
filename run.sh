@@ -33,6 +33,10 @@ iptables_setup() {
     iptables -N FORWARD 2> /dev/null
     iptables -N OUTPUT 2> /dev/null
 
+    iptables -P INPUT ACCEPT
+    iptables -P FORWARD ACCEPT
+    iptables -P OUTPUT ACCEPT
+
     # Allow OpenVPN traffic
     OPENVPN_FILE=$(echo $ARGS | awk '/--config/ { print $2 }')
     if [[ -n $OPENVPN_FILE ]]; then
