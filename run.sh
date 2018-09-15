@@ -36,7 +36,7 @@ iptables_setup() {
     CONFIG_FILE_REGEX='--config( |=)"?((.+).(ovpn|conf))"?'
 
     if [[ $ARGS =~ $CONFIG_FILE_REGEX ]]; then
-        if [[ -a $PWD/${BASH_REMATCH[2]} ]]; then
+        if [[ -a ${BASH_REMATCH[2]} ]]; then
             OPENVPN_FILE="${BASH_REMATCH[2]}"
         else
             echo 'Config file not found.'
