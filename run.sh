@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -euo pipefail
 
@@ -11,47 +11,59 @@ tun_device_setup() {
     fi
 
     if [[ ! -c /dev/net/tun ]]; then
-        echo 'TUN/TAP device does not exist. Creating...'
+        echo 'TUN/TAP device does not exist. Trying to create it...'
         mknod /dev/net/tun c 10 200
         chmod 0666 /dev/net/tun
 
         if [[ -c /dev/net/tun ]]; then
-            echo 'Created TUN/TAP device'
+            echo 'Created TUN/TAP device!'
         else
-            echo 'TUN/TAP could not be created. Exiting...'
+            echo 'TUN/TAP could not be created. Exiting.'
             exit 1
         fi
     fi
 }
 
 openvpn_connect() {
-    openvpn $ARGS
+    /bin/sh -c "openvpn $ARGS"
 }
 
 iptables_setup() {
-    # Allow OpenVPN traffic
-    OPENVPN_FILE=$(echo $ARGS | awk '/--config/ { print $2 }')
-    if [[ -n $OPENVPN_FILE ]]; then
-        OPENVPN_PROTO=$(awk '/proto/ && $2 ~ /^[a-z]{3}$/ { print $2 }' "$OPENVPN_FILE")
-        OPENVPN_PORT=$(awk '/remote/ && $3 ~ /^[0-9]+$/ { print $3 }' "$OPENVPN_FILE")
+    echo 'Setting up iptables...'
 
-        if [[ -n $OPENVPN_PROTO -a -n $OPENVPN_PORT ]]; then
-            iptables -A INPUT -p ${OPENVPN_PROTO} --sport ${OPENVPN_PORT} -m state --state ESTABLISHED,RELATED -j ACCEPT
-            iptables -A OUTPUT -p ${OPENVPN_PROTO} --dport ${OPENVPN_PORT} -j ACCEPT
+    # Allow OpenVPN traffic
+    OPENVPN_FILE=
+    CONFIG_FILE_REGEX='--config( |=)"?((.+).(ovpn|conf))"?'
+
+    if [[ $ARGS =~ $CONFIG_FILE_REGEX ]]; then
+        if [[ -a $PWD/${BASH_REMATCH[2]} ]]; then
+            OPENVPN_FILE="${BASH_REMATCH[2]}"
         else
+            echo 'Config file not found.'
+        fi
+    fi
+
+    if [[ ! -z $OPENVPN_FILE ]]; then
+        OPENVPN_PROTO=$(awk '/proto/ && $2 ~ /^[a-z]{3}$/ { print $2 }' "$OPENVPN_FILE")
+        OPENVPN_PORTS=$(awk '/remote/ && $3 ~ /^[0-9]+$/ { print $3 }' "$OPENVPN_FILE")
+
+        if [[ -n $OPENVPN_PROTO && -n $OPENVPN_PORTS ]]; then
+            for OPENVPN_PORT in $OPENVPN_PORTS
+            do
+                echo "Allowing OpenVPN on ${OPENVPN_PORT}/${OPENVPN_PROTO}"
+                iptables -A INPUT -p ${OPENVPN_PROTO} --sport ${OPENVPN_PORT} -m state --state ESTABLISHED,RELATED -j ACCEPT
+                iptables -A OUTPUT -p ${OPENVPN_PROTO} --dport ${OPENVPN_PORT} -j ACCEPT
+            done
+        else
+            echo 'Allowing OpenVPN on default 1194/udp'
             iptables -A INPUT -p udp --sport 1194 -m state --state ESTABLISHED,RELATED -j ACCEPT
             iptables -A OUTPUT -p udp --dport 1194 -j ACCEPT
         fi
     else
+        echo 'Allowing OpenVPN on default 1194/udp'
         iptables -A INPUT -p udp --sport 1194 -m state --state ESTABLISHED,RELATED -j ACCEPT
         iptables -A OUTPUT -p udp --dport 1194 -j ACCEPT
     fi
-
-    # Generic rules
-    iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-    iptables -A INPUT -p icmp --icmp-type 8 -m conntrack --ctstate NEW -j ACCEPT
-    iptables -A OUTPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-    iptables -A OUTPUT -p icmp -j ACCEPT
 
     # Allow traffic to DNS servers
     iptables -A INPUT -p tcp --sport 53 -j ACCEPT
@@ -65,6 +77,7 @@ iptables_setup() {
 
     # Restrict incoming traffic from tunnel interfaces
     iptables -A INPUT -i tun+ -m state --state ESTABLISHED,RELATED -j ACCEPT
+    iptables -A INPUT -i tun+ -j DROP
     iptables -A OUTPUT -o tun+ -j ACCEPT
 
     # Allow traffic between other containers
@@ -74,15 +87,16 @@ iptables_setup() {
         iptables -A OUTPUT -d $DOCKER_NETWORK -j ACCEPT
     done
 
-    iptables -A INPUT -j REJECT --reject-with icmp-port-unreachable || iptables -A INPUT -j DROP
-    iptables -A FORWARD -j REJECT --reject-with icmp-port-unreachable || iptables -A FORWARD -j DROP
-    iptables -A OUTPUT -j REJECT --reject-with icmp-port-unreachable || iptables -A OUTPUT -j DROP
+    iptables -A INPUT -j REJECT --reject-with icmp-port-unreachable 2> /dev/null || iptables -A INPUT -j DROP
+    iptables -A FORWARD -j REJECT --reject-with icmp-port-unreachable 2> /dev/null || iptables -A FORWARD -j DROP
+    iptables -A OUTPUT -j REJECT --reject-with icmp-port-unreachable 2> /dev/null || iptables -A OUTPUT -j DROP
 }
 
-if [[ -n $REGION ]]; then
-    ARGS="${ARGS} --config ${REGION}.ovpn"
+if [[ -n $REGION && ! -z $REGION ]]; then
+    ARGS="${ARGS} --config \"${REGION}.ovpn\""
 else
-    echo 'Region not specified. Default PIA OpenVPN config will not be loaded.'
+    echo 'Region not specified. PIA OpenVPN config file will not be loaded,'
+    echo 'you may specify a region or add configuration manually.'
 fi
 
 for ARG in $@; do

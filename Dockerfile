@@ -1,10 +1,8 @@
 FROM alpine:3.8
 
-RUN apk add --no-cache iptables openvpn
+RUN apk add --no-cache bash iptables openvpn
 
-RUN apk add --no-cache --virtual .build-deps \
-    curl \
-    unzip && \
+RUN apk add --no-cache --virtual .build-deps curl unzip && \
     curl -sS 'https://www.privateinternetaccess.com/openvpn/openvpn.zip' -o /tmp/openvpn.zip && \
     unzip /tmp/openvpn.zip -d /openvpn && \
     rm /tmp/openvpn.zip && \
@@ -13,7 +11,7 @@ RUN apk add --no-cache --virtual .build-deps \
 ADD run.sh /openvpn/run.sh
 RUN chmod +x /openvpn/run.sh
 
-ENV REGION 'Netherlands'
+ENV REGION='Netherlands'
 
 WORKDIR /openvpn
 
