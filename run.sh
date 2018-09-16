@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-DOCKER_NETWORKS=$(ip route | awk '$3 ~ /eth/ { print $1 }')
-ARGS=
+REGION="${REGION:=}"
+ARGS="${ARGS:=}"
 
 tun_device_setup() {
     if [[ ! -d /dev/net ]]; then
@@ -77,6 +77,7 @@ iptables_setup() {
     iptables -A OUTPUT -o tun+ -j ACCEPT
 
     # Allow traffic between other containers
+    DOCKER_NETWORKS=$(ip route | awk '$3 ~ /eth/ { print $1 }')
     for DOCKER_NETWORK in $DOCKER_NETWORKS
     do
         iptables -A INPUT -s $DOCKER_NETWORK -j ACCEPT

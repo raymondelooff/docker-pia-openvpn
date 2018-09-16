@@ -11,8 +11,6 @@ RUN apk add --no-cache --virtual .build-deps curl unzip && \
 ADD run.sh /openvpn/run.sh
 RUN chmod +x /openvpn/run.sh
 
-ENV REGION='Netherlands'
-
 WORKDIR /openvpn
 
 ENTRYPOINT ["/openvpn/run.sh"]
