@@ -44,7 +44,7 @@ docker run -d \
 
 ## Using the VPN tunnel
 
-Using the OpenVPN tunnel with other images is easy. Just specify the OpenVPN container name as the network for every container you would like to route through the tunnel.
+Using the OpenVPN tunnel for other containers is easy. Just specify the OpenVPN container name as the network for every container you would like to route through the tunnel.
 
 ```
 docker run --net=container:openvpn-client ...
