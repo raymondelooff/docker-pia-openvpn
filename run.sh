@@ -24,10 +24,6 @@ tun_device_setup() {
     fi
 }
 
-openvpn_connect() {
-    /bin/sh -c "openvpn $ARGS"
-}
-
 iptables_setup() {
     echo 'Setting up iptables...'
 
@@ -90,6 +86,10 @@ iptables_setup() {
     iptables -A INPUT -j REJECT --reject-with icmp-port-unreachable 2> /dev/null || iptables -A INPUT -j DROP
     iptables -A FORWARD -j REJECT --reject-with icmp-port-unreachable 2> /dev/null || iptables -A FORWARD -j DROP
     iptables -A OUTPUT -j REJECT --reject-with icmp-port-unreachable 2> /dev/null || iptables -A OUTPUT -j DROP
+}
+
+openvpn_connect() {
+    /bin/sh -c "openvpn $ARGS"
 }
 
 if [[ -n $REGION && ! -z $REGION ]]; then
