@@ -1,6 +1,6 @@
 FROM alpine:3.10
 
-RUN apk add --no-cache bash iptables openvpn
+RUN apk add --no-cache iptables openvpn
 
 RUN apk add --no-cache --virtual .build-deps curl unzip && \
     curl -sS 'https://www.privateinternetaccess.com/openvpn/openvpn.zip' -o /tmp/openvpn.zip && \
