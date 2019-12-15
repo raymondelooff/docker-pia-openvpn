@@ -72,9 +72,9 @@ iptables_setup() {
     iptables -A OUTPUT -o lo -j ACCEPT
 
     # Restrict incoming traffic from tunnel interfaces
-    iptables -A INPUT -i tunl+ -m state --state ESTABLISHED,RELATED -j ACCEPT
-    iptables -A INPUT -i tunl+ -j ACCEPT
-    iptables -A OUTPUT -o tunl+ -j ACCEPT
+    iptables -A INPUT -i tun+ -m state --state ESTABLISHED,RELATED -j ACCEPT
+    iptables -A INPUT -i tun+ -j ACCEPT
+    iptables -A OUTPUT -o tun+ -j ACCEPT
 
     # Allow traffic between other containers
     DOCKER_NETWORKS=$(ip route | awk '$3 ~ /eth/ { print $1 }')
