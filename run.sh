@@ -27,14 +27,6 @@ tun_device_setup() {
 iptables_setup() {
     echo 'Setting up iptables...'
 
-    iptables -P INPUT ACCEPT
-    iptables -P FORWARD ACCEPT
-    iptables -P OUTPUT ACCEPT
-    iptables -t nat -F
-    iptables -t mangle -F
-    iptables -F
-    iptables -X
-
     # Allow OpenVPN traffic
     OPENVPN_FILE=
     CONFIG_FILE_REGEX='--config( |=)"?((.+).(ovpn|conf))"?'
