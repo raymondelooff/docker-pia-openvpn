@@ -1,12 +1,27 @@
-FROM alpine:3.10
+FROM debian:buster-slim
 
-RUN apk add --no-cache bash iptables openvpn
+RUN apt-get update && \
+    apt-get install -y wget gnupg && \
+    wget -O - https://swupdate.openvpn.net/repos/repo-public.gpg | apt-key add - && \
+    apt-get purge -y wget gnupg && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN apk add --no-cache --virtual .build-deps curl unzip && \
+RUN echo "deb http://build.openvpn.net/debian/openvpn/release/2.4 buster main" > /etc/apt/sources.list.d/openvpn.list
+
+RUN apt-get update && \
+    apt-get install -y bash iptables openvpn && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && \
+    apt-get install -y curl unzip && \
     curl -sS 'https://www.privateinternetaccess.com/openvpn/openvpn.zip' -o /tmp/openvpn.zip && \
     unzip /tmp/openvpn.zip -d /openvpn && \
     rm /tmp/openvpn.zip && \
-    apk del .build-deps
+    apt-get purge -y curl unzip && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
 
 ADD run.sh /openvpn/run.sh
 RUN chmod +x /openvpn/run.sh
