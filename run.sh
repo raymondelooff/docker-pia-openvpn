@@ -27,6 +27,14 @@ tun_device_setup() {
 iptables_setup() {
     echo 'Setting up iptables...'
 
+    iptables -P INPUT ACCEPT
+    iptables -P FORWARD ACCEPT
+    iptables -P OUTPUT ACCEPT
+    iptables -t nat -F
+    iptables -t mangle -F
+    iptables -F
+    iptables -X
+
     # Allow OpenVPN traffic
     OPENVPN_FILE=
     CONFIG_FILE_REGEX='--config( |=)"?((.+).(ovpn|conf))"?'
@@ -40,7 +48,7 @@ iptables_setup() {
     fi
 
     if [[ ! -z $OPENVPN_FILE ]]; then
-        OPENVPN_PROTO=$(awk '/proto/ && $2 ~ /^[a-z]{3}$/ { print $2 }' "$OPENVPN_FILE")
+        OPENVPN_PROTO=$(awk '/proto/ && $2 ~ /^[a-z]+$/ { print $2 }' "$OPENVPN_FILE")
         OPENVPN_PORTS=$(awk '/remote/ && $3 ~ /^[0-9]+$/ { print $3 }' "$OPENVPN_FILE")
 
         if [[ -n $OPENVPN_PROTO && -n $OPENVPN_PORTS ]]; then
@@ -72,9 +80,9 @@ iptables_setup() {
     iptables -A OUTPUT -o lo -j ACCEPT
 
     # Restrict incoming traffic from tunnel interfaces
-    iptables -A INPUT -i tun+ -m state --state ESTABLISHED,RELATED -j ACCEPT
-    iptables -A INPUT -i tun+ -j DROP
-    iptables -A OUTPUT -o tun+ -j ACCEPT
+    iptables -A INPUT -i tunl+ -m state --state ESTABLISHED,RELATED -j ACCEPT
+    iptables -A INPUT -i tunl+ -j ACCEPT
+    iptables -A OUTPUT -o tunl+ -j ACCEPT
 
     # Allow traffic between other containers
     DOCKER_NETWORKS=$(ip route | awk '$3 ~ /eth/ { print $1 }')

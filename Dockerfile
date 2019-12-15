@@ -11,6 +11,8 @@ RUN echo "deb http://build.openvpn.net/debian/openvpn/release/2.4 buster main" >
 
 RUN apt-get update && \
     apt-get install -y bash iptables openvpn && \
+    update-alternatives --set iptables /usr/sbin/iptables-legacy && \
+    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
