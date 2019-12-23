@@ -73,7 +73,7 @@ iptables_setup() {
 
     # Restrict incoming traffic from tunnel interfaces
     iptables -A INPUT -i tun+ -m state --state ESTABLISHED,RELATED -j ACCEPT
-    iptables -A INPUT -i tun+ -j ACCEPT
+    iptables -A INPUT -i tun+ -j DROP
     iptables -A OUTPUT -o tun+ -j ACCEPT
 
     # Allow traffic between other containers
