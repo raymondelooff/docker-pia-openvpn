@@ -1,6 +1,11 @@
 FROM debian:buster-slim
 
 RUN apt-get update && \
+    apt-get dist-upgrade -y && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && \
     apt-get install -y wget gnupg && \
     wget -O - https://swupdate.openvpn.net/repos/repo-public.gpg | apt-key add - && \
     apt-get purge -y wget gnupg && \
