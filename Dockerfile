@@ -7,7 +7,7 @@ RUN apt-get update && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
-RUN echo "deb http://build.openvpn.net/debian/openvpn/release/2.4 buster main" > /etc/apt/sources.list.d/openvpn.list
+RUN echo "deb http://build.openvpn.net/debian/openvpn/release/stable buster main" > /etc/apt/sources.list.d/openvpn.list
 
 RUN apt-get update && \
     apt-get install -y bash iptables openvpn && \
